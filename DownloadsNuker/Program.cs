@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using SearchOption = System.IO.SearchOption;
 
@@ -8,46 +9,50 @@ namespace DownloadsNuker
     {
         static void Main()
         {
+            var size = GetDownloadsFolderSize();
+            while (size > 200)
+            {
+                Console.WriteLine("Beginning rolling delete....");
+                GetAndDeleteOldestFile();
+                size = GetDownloadsFolderSize();
+            }
+            Console.WriteLine("Done!");
+            Environment.Exit(0);
+        }
+
+        private static long GetDownloadsFolderSize()
+        {
             Console.WriteLine("Evaluating Downloads Folder...");
             string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Downloads";
             Console.WriteLine(path);
             string[] fileList = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-            long size=0;
+            long size = 0;
             foreach (var file in fileList)
             {
-                FileInfo fileInfo = new  FileInfo(file);
+                FileInfo fileInfo = new FileInfo(file);
                 size += fileInfo.Length;
             }
             size = size / 1024 / 1024 / 1024;
-            Console.WriteLine("Downloads Folder is " + size + "GB");
-            if (size > 200)
+            return size;
+        }
+        private static void GetAndDeleteOldestFile()
+        {
+            Console.WriteLine("Deleting Oldest");
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Downloads";
+            Console.WriteLine(path);
+            string[] fileList = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+            var OldestFile = new KeyValuePair<string, DateTime>("", DateTime.Now);
+            foreach (var file in fileList)
             {
-                Console.WriteLine("Would you like to delete your Downloads Directory?");
-                Console.WriteLine("[y/N]");
-                var userKey = Console.ReadKey();
-                if (userKey.Key == ConsoleKey.Y)
+                FileInfo fileInfo = new FileInfo(file);
+                if (fileInfo.CreationTime < OldestFile.Value)
                 {
-                    foreach (var file in fileList)
-                    {
-                        Console.WriteLine("Deleting " + file);
-                        File.Delete(file);
-                    }
-                    Console.WriteLine("Process Complete!");
-                    Console.WriteLine("Press any key to exit.");
-                    Console.ReadKey();
+                    OldestFile = new KeyValuePair<string, DateTime>(file, fileInfo.CreationTime);
                 }
-                else
-                {
-                    Console.WriteLine("Will prompt at next launch.");
-                    Console.Read();
-                }
+      
             }
-            else
-            {
-                Console.WriteLine("Your downloads folder is less than 200GB! Congrats!");
-                System.Threading.Thread.Sleep(3000);
-            }
-            Environment.Exit(0);
+            Console.WriteLine("Deleting {0}", OldestFile.Key);
+            File.Delete(OldestFile.Key);
         }
     }
 }
