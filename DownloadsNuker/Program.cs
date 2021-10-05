@@ -9,8 +9,14 @@ namespace DownloadsNuker
     {
         static void Main()
         {
+            int DeleteSize = 200;
             var size = GetDownloadsFolderSize();
-            while (size > 200)
+            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/DeleteSize.txt")){
+                string tmp = File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/DeleteSize.txt");
+                DeleteSize = Int32.Parse(tmp);
+                Console.WriteLine("Set limit to {0} GB", DeleteSize);
+            }
+            while (size > DeleteSize)
             {
                 Console.WriteLine("Beginning rolling delete....");
                 GetAndDeleteOldestFile();
