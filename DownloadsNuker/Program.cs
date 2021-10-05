@@ -35,8 +35,11 @@ namespace DownloadsNuker
             long size = 0;
             foreach (var file in fileList)
             {
-                FileInfo fileInfo = new FileInfo(file);
-                size += fileInfo.Length;
+                if(!file.Contains("Telegram Desktop"))
+                {
+                    FileInfo fileInfo = new FileInfo(file);
+                    size += fileInfo.Length;
+                }
             }
             size = size / 1024 / 1024 / 1024;
             return size;
@@ -53,9 +56,11 @@ namespace DownloadsNuker
                 FileInfo fileInfo = new FileInfo(file);
                 if (fileInfo.CreationTime < OldestFile.Value)
                 {
-                    OldestFile = new KeyValuePair<string, DateTime>(file, fileInfo.CreationTime);
+                    if (!file.Contains("Telegram Desktop"))
+                    {
+                        OldestFile = new KeyValuePair<string, DateTime>(file, fileInfo.CreationTime);
+                    }
                 }
-      
             }
             Console.WriteLine("Deleting {0}", OldestFile.Key);
             File.Delete(OldestFile.Key);
